@@ -1,11 +1,23 @@
 from bot_logger import logger
 from discord import Intents
 from discord.ext import commands
+from dotenv import load_dotenv
 import asyncio
 import json
 import logging
 import random  # Needed for spawning Battleflies
 import os  # Needed for file handling
+
+# Load environment variables
+load_dotenv()
+TOKEN = os.getenv("DISCORD_TOKEN")
+CHANNEL_ID = os.getenv("CHANNEL_ID")
+
+# Load bot config
+CONFIG_JSON_PATH = "bot_config.json"
+with open(CONFIG_JSON_PATH) as config_file:
+    config_data = json.load(config_file)
+
 
 INVENTORY_FILE = "battlefly_inventory.json"
 
@@ -54,9 +66,12 @@ battlefly_inventory = load_inventory()
 active_battleflies = {}  # Stores players' found Battleflies
 
 # Load bot config
-CONFIG_JSON_PATH = "bot_config.json"
-with open(CONFIG_JSON_PATH) as config_file:
-    config_data = json.load(config_file)
+# Load environment variables
+load_dotenv()
+
+TOKEN = os.getenv("DISCORD_TOKEN")
+CHANNEL_ID = os.getenv("CHANNEL_ID")
+
 
 # Set up bot intents
 intents = Intents.default()
@@ -75,10 +90,7 @@ async def on_ready():
     print(f'✅ Logged in as {bot.user}')
 
     # Load channel ID from config
-    channel_id = int(config_data.get("channel_id", 0))
-
-    # Debug: Print the channel ID
-    print(f"🔍 Bot is trying to send a message to channel ID: {channel_id}")
+    channel_id = int(CHANNEL_ID) if CHANNEL_ID else 0
 
     # Get the channel
     channel = bot.get_channel(channel_id)
@@ -258,7 +270,7 @@ async def main():
         print("Starting bot...")
 
         await load_cogs()
-        await bot.start(config_data["token"])
+        await bot.start(TOKEN)
     except KeyboardInterrupt:
         print("\n🔴 Bot is shutting down...")
     except Exception as e:
