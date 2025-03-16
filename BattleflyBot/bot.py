@@ -141,7 +141,7 @@ async def search(ctx):
         rarity_labels = ["Common", "Uncommon", "Rare", "Epic", "Legendary"]
         battlefly_rarity = random.choices(rarity_labels, weights=rarity_weights)[0]
 
-        await ctx.send(f"🔎 {ctx.author.mention} searched and found a **{battlefly_rarity} Battlefly**! Type `!catch` to try catching it!")
+        await ctx.send(f"🔎 {ctx.author.mention} searched and found a **{battlefly_rarity} Battlefly**! Woo hoo!! Type `!catch` to try catching it!")
         
         # Store the found Battlefly for `!catch` command (we'll handle this next)
         active_battleflies[ctx.author.id] = battlefly_rarity
