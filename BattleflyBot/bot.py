@@ -153,7 +153,7 @@ async def search(ctx):
         rarity_labels = ["Common", "Uncommon", "Rare", "Epic", "Legendary"]
         battlefly_rarity = random.choices(rarity_labels, weights=rarity_weights)[0]
 
-        await ctx.send(f"🔎 {ctx.author.mention} searched and found a **{battlefly_rarity} Battlefly**! Woo hoo!! Type `!catch` to try catching it!")
+        await ctx.send(f"🔎 {ctx.author.mention} searched and found a **{battlefly_rarity} Battlefly**! Type `!catch` to try catching it!")
         
         # Store the found Battlefly for `!catch` command (we'll handle this next)
         active_battleflies[ctx.author.id] = battlefly_rarity
@@ -262,6 +262,26 @@ async def inventory(ctx):
 
     await ctx.send(inventory_message)
 
+@bot.command(name="release")
+async def release(ctx, *, battlefly_name: str):
+    """Allows players to release a Battlefly from their inventory."""
+    
+    user_id = str(ctx.author.id)
+
+    # Check if the player has an inventory
+    if user_id not in battlefly_inventory or not battlefly_inventory[user_id]:
+        await ctx.send(f"📭 {ctx.author.mention}, your inventory is empty! Nothing to release.")
+        return
+
+    # Find and remove the Battlefly from the inventory
+    for battlefly in battlefly_inventory[user_id]:
+        if battlefly["name"].lower() == battlefly_name.lower():
+            battlefly_inventory[user_id].remove(battlefly)
+            save_inventory(battlefly_inventory)
+            await ctx.send(f"😢 {ctx.author.mention} released **{battlefly_name}** back into the wild!")
+            return
+
+    await ctx.send(f"⚠️ {ctx.author.mention}, you don't have a Battlefly named **{battlefly_name}** in your inventory!")
 
 # Start bot
 async def main():
