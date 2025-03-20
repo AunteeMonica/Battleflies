@@ -1,0 +1,9 @@
+{
+    "cocoon_battlefly_limit": 3,
+    "daily_cocoon_amber_rate": 1,
+    "daily_cocoon_sapphire_rate": 0.5,
+    "daily_cocoon_diamond_rate": 0.1,
+    "cocoon_amber_rate": 0.1,
+    "cocoon_sapphire_rate": 0.05,
+    "cocoon_diamond_rate": 0.01
+}

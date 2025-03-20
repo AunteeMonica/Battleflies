@@ -1,126 +1,96 @@
 class AdminLogicException(Exception):
     pass
 
-
 class CatchCooldownIncompleteException(Exception):
     pass
-
 
 class DailyCooldownIncompleteException(Exception):
     pass
 
-
 class DailyLogicException(Exception):
     pass
-
 
 class HigherPageSpecifiedException(Exception):
     pass
 
-
 class HigherReleaseQuantitySpecifiedException(Exception):
     pass
-
 
 class ImproperDailyShopItemNumberException(Exception):
     pass
 
-
 class InventoryLogicException(Exception):
     pass
 
-
-class LegendarybattleflyServiceException(Exception):
+class LegendaryBattleflyServiceException(Exception):
+    """Raised when an issue occurs in the Legendary Battlefly service."""
     pass
 
-
-class LootboxDoesNotExistException(Exception):
+class CocoonDoesNotExistException(Exception):
+    """Raised when a specified cocoon does not exist."""
     pass
 
+class NotEnoughCocoonQuantityException(Exception):
+    """Raised when an Ally does not have enough cocoons."""
+    pass
 
 class MiscLogicException(Exception):
     pass
 
-
 class NoEggCountException(Exception):
     pass
-
 
 class NotEnoughDailyShopTokensException(Exception):
     pass
 
-
-class NotEnoughExchangebattleflyQuantityException(Exception):
+class NotEnoughExchangeBattleflyQuantityException(Exception):
     pass
 
-
-class NotEnoughExchangebattleflySpecifiedException(Exception):
+class NotEnoughExchangeBattleflySpecifiedException(Exception):
     pass
-
-
-class NotEnoughLootboxQuantityException(Exception):
-    pass
-
 
 class NotEnoughRerollsException(Exception):
     pass
 
-
-class NightVendorLogicException(Exception):
+class TheSproutLogicException(Exception):
     pass
 
-
-class NightVendorSaleAlreadyMadeException(Exception):
+class TheSproutSaleAlreadyMadeException(Exception):
     pass
-
 
 class PageQuantityTooLow(Exception):
     pass
 
-
-class battleflyBotAssetsException(Exception):
+class BattleflyBotAssetsException(Exception):
     pass
 
-
-class battleflyBotGeneratorException(Exception):
+class BattleflyBotGeneratorException(Exception):
     pass
 
-
-class battleflyBotRatesException(Exception):
+class BattleflyBotRatesException(Exception):
     pass
 
-
-class battleflyBotStatusException(Exception):
+class BattleflyBotStatusException(Exception):
     pass
 
-
-class battleflyDoesNotExistException(Exception):
+class BattleflyDoesNotExistException(Exception):
     pass
 
-
-class ReleasebattleflyException(Exception):
+class ReleaseBattleflyException(Exception):
     pass
-
 
 class ReleaseQuantityTooLow(Exception):
     pass
 
-
-class TooManyExchangebattleflySpecifiedException(Exception):
+class TooManyExchangeBattleflySpecifiedException(Exception):
     pass
 
-
-class TrainerServiceException(Exception):
+class AllyServiceException(Exception):
     pass
 
-
-class UltraBeastsServiceException(Exception):
+class UnavailableBattleflyToTradeException(Exception):
     pass
 
-
-class UnavailablebattleflyToTradeException(Exception):
-    pass
-
-
-class UnregisteredTrainerException(Exception):
+class UnregisteredAllyException(Exception):
+    """Raised when an Ally is not registered."""
     pass

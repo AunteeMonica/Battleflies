@@ -1,10 +1,8 @@
-from modules.services.legendary_battlefly_service import LegendarybattleflyService
-from modules.services.trainer_service import TrainerService
-from modules.services.ultra_beasts_service import UltraBeastsService
+from modules.services.legendary_battlefly_service import LegendaryBattleflyService
+from modules.services.ally_service import AllyService
 
 
 all = [
-    LegendarybattleflyService,
-    TrainerService,
-    UltraBeastsService
+    LegendaryBattleflyService,
+    AllyService
 ]

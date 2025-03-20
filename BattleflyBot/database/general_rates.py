@@ -1,15 +1,13 @@
 from classes import ConfigDAO
 
-
 GENERAL_CONFIG_NAME = "general_config.json"
-
 
 class GeneralRatesDAO(ConfigDAO):
     """
-    Gets the general rate configs for battleflyBot
+    Gets the general rate configs for BattleflyBot.
     """
     def __init__(self, filename=GENERAL_CONFIG_NAME):
-        if (self.__initialized):
+        if getattr(self, "__initialized", False):
             return
         self.__initialized = True
         super().__init__(filename)
@@ -23,13 +21,6 @@ class GeneralRatesDAO(ConfigDAO):
 
     def get_daily_redemption_reset_hour(self) -> int:
         """
-        Gets the hour to reset the daily
+        Gets the hour to reset daily rewards.
         """
         return self.data["daily_redemption_reset_hour"]
-
-    def get_catch_cooldown_seconds(self) -> int:
-        """
-        Gets the list of gifted lootboxes to receive from
-        battleflyBot
-        """
-        return self.data["catch_cooldown_seconds"]

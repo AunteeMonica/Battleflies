@@ -1,18 +1,17 @@
 # from modules.battlefly_functionality import battleflyFunctionality
-from classes import battleflyBotCog
+from cogs.battleflybot_cog import BattleflyBotCog
 from cogs.logic.admin_logic import AdminLogic
 from discord.ext import commands
 from modules.battleflybot_exceptions import (
     HigherReleaseQuantitySpecifiedException,
-    LootboxDoesNotExistException,
-    NotEnoughLootboxQuantityException,
-    battleflyDoesNotExistException,
-    UnregisteredTrainerException
+    CocoonDoesNotExistException,
+    NotEnoughCocoonQuantityException,
+    BattleflyDoesNotExistException,
+    UnregisteredAllyException
 )
 from utils.utils import format_shiny_battlefly_name, is_name_shiny
 
-
-class AdminCommands(battleflyBotCog):
+class AdminCommands(BattleflyBotCog):
 
     def __init__(self, bot):
         super().__init__()
@@ -24,10 +23,10 @@ class AdminCommands(battleflyBotCog):
         self,
         ctx: commands.Context,
         user_id: int = commands.parameter(
-            description="ID of the trainer to give a battlefly too"
+            description="ID of the Ally to give a battlefly to"
         ),
-        pkmn_name: str = commands.parameter(
-            description="Name of the battlefly to delete"
+        battlefly_name: str = commands.parameter(
+            description="Name of the battlefly to give"
         ),
         shiny: str = commands.parameter(
             description="Specify 's' or not to give a shiny battlefly",
@@ -35,7 +34,7 @@ class AdminCommands(battleflyBotCog):
         )
     ) -> None:
         """
-        Gives a battlefly to a trainer (admin only cmd)
+        Gives a battlefly to an Ally (admin only command).
         """
         try:
             is_shiny = False
@@ -44,16 +43,16 @@ class AdminCommands(battleflyBotCog):
             str_user_id = str(user_id)
             await self.admin_logic.give_battlefly(
                 str_user_id,
-                pkmn_name,
+                battlefly_name,
                 is_shiny
             )
-            formatted_pkmn_name = pkmn_name.title()
+            formatted_battlefly_name = battlefly_name.title()
             if is_shiny:
-                formatted_pkmn_name = "(Shiny) " + formatted_pkmn_name
+                formatted_battlefly_name = "(Shiny) " + formatted_battlefly_name
             await ctx.send(f"{ctx.message.author.mention} gave a"
-                           f" **{formatted_pkmn_name}** to <@{str_user_id}>")
-        except battleflyDoesNotExistException as e:
-            await self.post_battlefly_does_not_exist_exception_msg(ctx, e)
+                           f" **{formatted_battlefly_name}** to <@{str_user_id}>")
+        except BattleflyDoesNotExistException as e:
+            await self.battlefly_does_not_exist_msg(ctx, e)
 
     @commands.command(name='delete', pass_context=True, hidden=True)
     @commands.has_role('battleflyBot Admin')
@@ -61,90 +60,83 @@ class AdminCommands(battleflyBotCog):
         self,
         ctx: commands.Context,
         user_id: int = commands.parameter(
-            description="ID of the trainer to give a battlefly too"
+            description="ID of the Ally to remove a battlefly from"
         ),
-        pkmn_name: str = commands.parameter(
-            description=("Name of the battlefly to delete i.e. "
-                         "'pikachu', '(shiny)pikachu'")
+        battlefly_name: str = commands.parameter(
+            description="Name of the battlefly to delete"
         )
     ) -> None:
         """
-        Deletes a battlefly from the trainer (admin only cmd)
+        Deletes a battlefly from an Ally's collection (admin only command).
         """
         try:
             str_user_id = str(user_id)
-            formatted_pkmn_name = pkmn_name.lower()
-            await self.admin_logic.delete_battlefly(str_user_id,
-                                                  formatted_pkmn_name)
-            if is_name_shiny(pkmn_name):
-                formatted_pkmn_name = format_shiny_battlefly_name(pkmn_name)
+            formatted_battlefly_name = battlefly_name.lower()
+            await self.admin_logic.delete_battlefly(str_user_id, formatted_battlefly_name)
+            if is_name_shiny(battlefly_name):
+                formatted_battlefly_name = format_shiny_battlefly_name(battlefly_name)
             else:
-                formatted_pkmn_name = formatted_pkmn_name.title()
+                formatted_battlefly_name = formatted_battlefly_name.title()
             await ctx.send(f"{ctx.message.author.mention} deleted a"
-                           f" **{formatted_pkmn_name}** from trainer"
+                           f" **{formatted_battlefly_name}** from Ally"
                            f" <@{str_user_id}>")
-        except UnregisteredTrainerException as e:
-            await self.post_unregistered_trainer_admin_exception_msg(ctx, e)
+        except UnregisteredAllyException as e:
+            await self.unregistered_ally_admin_msg(ctx, e)
         except HigherReleaseQuantitySpecifiedException as e:
-            await self.post_higher_quantity_specified_exception_msg(ctx, e)
-        except battleflyDoesNotExistException as e:
-            await self.post_battlefly_does_not_exist_exception_msg(ctx, e)
+            await self.higher_quantity_specified_msg(ctx, e)
+        except BattleflyDoesNotExistException as e:
+            await self.battlefly_does_not_exist_msg(ctx, e)
 
-    @commands.command(name='giveloot', pass_context=True, hidden=True)
+    @commands.command(name='givecocoon', pass_context=True, hidden=True)
     @commands.has_role('battleflyBot Admin')
-    async def giveloot(
+    async def givecocoon(
         self,
         ctx: commands.Context,
         user_id: int = commands.parameter(
-            description="ID of the trainer to give a battlefly too"
+            description="ID of the Ally to give a cocoon to"
         ),
-        lootbox: str = commands.parameter(
-            description="Specify either 'bronze', 'silver' or 'gold' lootbox"
+        cocoon: str = commands.parameter(
+            description="Specify either 'bronze', 'silver', or 'gold' cocoon"
         )
     ) -> None:
         """
-        Gives a trainer a specified lootbox
+        Gives an Ally a specified cocoon.
         """
         try:
             str_user_id = str(user_id)
-            formatted_lootbox = lootbox.lower()
-            await self.admin_logic.give_lootbox(str_user_id,
-                                                formatted_lootbox)
+            formatted_cocoon = cocoon.lower()
+            await self.admin_logic.give_cocoon(str_user_id, formatted_cocoon)
             await ctx.send(f"{ctx.message.author.mention} gave a"
-                           f" **{formatted_lootbox.title()}** lootbox"
-                           f" to trainer <@{str_user_id}>")
-        except LootboxDoesNotExistException as e:
-            await self.post_lootbox_does_not_exist(ctx, e)
+                           f" **{formatted_cocoon.title()}** cocoon"
+                           f" to Ally <@{str_user_id}>")
+        except CocoonDoesNotExistException as e:
+            await self.cocoon_does_not_exist_msg(ctx, e)
 
-    @commands.command(name='deleteloot', pass_context=True, hidden=True)
+    @commands.command(name='deletecocoon', pass_context=True, hidden=True)
     @commands.has_role('battleflyBot Admin')
-    async def deleteloot(
+    async def deletecocoon(
         self,
         ctx: commands.Context,
         user_id: int = commands.parameter(
-            description="ID of the trainer to give a battlefly too"
+            description="ID of the Ally to remove a cocoon from"
         ),
-        lootbox: str = commands.parameter(
-            description="Specify either 'bronze', 'silver' or 'gold' lootbox"
+        cocoon: str = commands.parameter(
+            description="Specify either 'bronze', 'silver', or 'gold' cocoon"
         )
     ) -> None:
         """
-        Deletes a lootbox from a trainer's inventory
+        Deletes a cocoon from an Ally's inventory.
         """
         try:
             str_user_id = str(user_id)
-            formatted_lootbox = lootbox.lower()
-            await self.admin_logic.delete_lootbox(str_user_id,
-                                                  formatted_lootbox)
+            formatted_cocoon = cocoon.lower()
+            await self.admin_logic.delete_cocoon(str_user_id, formatted_cocoon)
             await ctx.send(f"{ctx.message.author.mention} deleted a"
-                           f" **{formatted_lootbox.title()}** lootbox from"
-                           f" trainer <@{str_user_id}>")
-        except UnregisteredTrainerException as e:
-            await self.post_unregistered_trainer_admin_exception_msg(ctx, e)
-        except LootboxDoesNotExistException as e:
-            await self.post_lootbox_does_not_exist(ctx, e)
-        except NotEnoughLootboxQuantityException as e:
-            await self.post_not_enough_lootbox_quantity_admin_exception_msg(
-                ctx,
-                e
-            )
+                           f" **{formatted_cocoon.title()}** cocoon from"
+                           f" Ally <@{str_user_id}>")
+        except UnregisteredAllyException as e:
+            await self.unregistered_ally_admin_msg(ctx, e)
+        except CocoonDoesNotExistException as e:
+            await self.cocoon_does_not_exist_msg(ctx, e)
+        except NotEnoughCocoonQuantityException as e:
+            await self.not_enough_cocoon_quantity_msg(ctx, e)

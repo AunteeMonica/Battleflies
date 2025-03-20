@@ -3,19 +3,19 @@ import discord
 import re
 
 
-def format_battlefly_name(pkmn_name: str) -> str:
+def format_battlefly_name(battlefly_name: str) -> str:
     """
     Replaces underscore with a space
     """
-    formatted_pkmn_name = pkmn_name.replace('_', ' ')
-    return formatted_pkmn_name.title()
+    formatted_name = battlefly_name.replace('_', ' ')
+    return formatted_name.title()
 
 
-def format_lootbox_battlefly_name(pkmn_name: str) -> str:
+def format_cocoon_battlefly_name(battlefly_name: str) -> str:
     """
-    Formats the name for battlefly lootbox display
+    Formats the name for Battleflies obtained from Cocoons.
     """
-    pkmn_name.title()
+    return battlefly_name.title()
 
 
 def get_ctx_user_id(ctx: commands.Context):
@@ -41,26 +41,13 @@ def parse_discord_mention_user_id(user_mention: str):
     return parsed_user_id
 
 
-def is_name_shiny(pkmn_name: str) -> bool:
+def sort_battleflies(battleflies, sort_by="type"):
     """
-    Checks to see if the battlefly specified has shiny in it
+    Sorts Battleflies by the given category.
     """
-    return pkmn_name.startswith("(shiny)")
-
-
-def remove_shiny_battlefly_name(pkmn_name: str) -> str:
-    """
-    Removes the shiny prefix from the battlefly's name
-    """
-    shiny_removed_pkmn_name = pkmn_name.replace("(shiny)", '')
-    return shiny_removed_pkmn_name
-
-
-def format_shiny_battlefly_name(pkmn_name: str) -> str:
-    """
-    Removes the shiny prefix from the battlefly's name and then
-    places (Shiny) back in front of it
-    """
-    shiny_removed_pkmn_name = pkmn_name.replace("(shiny)", '')
-    formatted_shiny_pkmn_name = "(Shiny) " + shiny_removed_pkmn_name
-    return formatted_shiny_pkmn_name
+    sorting_methods = {
+        "type": lambda b: b.get("type", ""),
+        "name": lambda b: b.get("name", "")
+    }
+    battleflies.sort(key=sorting_methods.get(sort_by, sorting_methods["type"]))
+    return battleflies

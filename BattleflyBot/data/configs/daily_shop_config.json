@@ -1,21 +1,17 @@
 {
     "daily_redemption_reset_hour": 0,
     "daily_shop_menu": {
-        "bronze": {
+        "amber": {
             "price": 3,
-            "description": "Bronze Lootbox"
+            "description": "Amber Cocoon"
         },
-        "silver": {
+        "sapphire": {
             "price": 6,
-            "description": "Silver Lootbox"
+            "description": "Sapphire Cocoon"
         },
-        "gold": {
+        "diamond": {
             "price": 12,
-            "description": "Gold Lootbox"
-        },
-        "shiny": {
-            "price": 50,
-            "description": "Random Shiny battlefly"
+            "description": "Diamond Cocoon"
         }
     }
 }

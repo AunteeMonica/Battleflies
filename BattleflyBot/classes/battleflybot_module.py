@@ -1,8 +1,7 @@
 from bot_logger import logger
 
-
 class battleflyBotModule:
-    def post_error_log_msg(self, exc_name: Exception, msg: str, exc: Exception):
+    def log_error(self, exc_name: Exception, msg: str, exc: Exception):
+        """Logs errors without duplicating timestamps."""
         print(f"{msg} See error.log.")
-        logger.error(f"{exc_name}: "
-                     f"{msg}\n{str(exc)}")
+        logger.error(f"{exc_name}: {msg}\n{str(exc)}")

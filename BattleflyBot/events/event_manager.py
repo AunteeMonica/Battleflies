@@ -1,13 +1,13 @@
-from classes import battleflyBotEvent
-from events.happy_hour_event import HappyHourEvent
-from events.night_vendor_event import NightVendorEvent
+from modules.battleflybot_event import BattleflyBotEvent
+from events.wild_swarm_event import WildSwarmEvent
+from events.the_sprout_event import TheSproutEvent
 import datetime
 
 
 class EventManager(object):
 
-    HAPPY_HOUR_KEY = "happy_hour"
-    NIGHT_VENDOR_KEY = "night_vendor"
+    WILD_SWARM_KEY = "wild_swarm"
+    THE_SPROUT_KEY = "the_sprout"
 
     def __init__(self, bot):
         if (self.__initialized):
@@ -15,11 +15,10 @@ class EventManager(object):
         self.__initialized = True
         self.active_events = {}
         self.events = {
-            self.HAPPY_HOUR_KEY: HappyHourEvent(bot),
-            self.NIGHT_VENDOR_KEY: NightVendorEvent(bot),
+            self.WILD_SWARM_KEY: WildSwarmEvent(bot),
+            self.THE_SPROUT_KEY: TheSproutEvent(bot),
         }
         self.event_catch_cooldown_modifier = 1.0
-        self.event_shiny_rate_modifier = 1.0
 
     def __new__(*args):
         cls = args[0]
@@ -38,28 +37,24 @@ class EventManager(object):
         """
         return self.events[event_key].get_active_state()
 
-    def get_event_by_key(self, event_key: str) -> battleflyBotEvent:
+    def get_event_by_key(self, event_key: str) -> BattleflyBotEvent:
         """
-        Returns the battleflyBotEvent object given the event key
+        Returns the BattleflyBotEvent object given the event key
         """
         return self.events[event_key]
 
     def get_current_event_catch_cooldown_modifier(self) -> float:
         return self.event_catch_cooldown_modifier
 
-    def get_current_event_shiny_rate_modifier(self) -> float:
-        return self.event_shiny_rate_modifier
-
     async def process_all_event_activation_times(self) -> None:
         """
-        Iterate through each event to determine activation and
-        apply side effects
+        Iterate through each event to determine activation and apply side effects.
+        Wild Swarm triggers every 333 minutes.
         """
-        hour = int(datetime.datetime.now().hour)
         for event_key in self.events:
             event = self.events[event_key]
             if event.is_event_enabled():
-                await event.process_event_activation_time(hour)
+                await event.activate()
                 await self._set_event_side_effects(event)
 
     async def _set_event_side_effects(self, event) -> None:
@@ -70,9 +65,7 @@ class EventManager(object):
             if type(event).__name__ not in self.active_events:
                 self.active_events[type(event).__name__] = True
                 self.event_catch_cooldown_modifier *= event.catch_cooldown_modifier
-                self.event_shiny_rate_modifier *= event.shiny_rate_modifier
         else:
             if type(event).__name__ in self.active_events:
                 self.active_events[type(event).__name__] = False
                 self.event_catch_cooldown_modifier /= event.catch_cooldown_modifier
-                self.event_shiny_rate_modifier /= event.shiny_rate_modifier

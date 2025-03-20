@@ -1,15 +1,13 @@
 from classes import DataDAO
 
-
 EVENTS_JSON_NAME = "events.json"
-
 
 class EventsDAO(DataDAO):
     """
-    Gets the list of events that are available
+    Manages the list of events available in BattleflyBot.
     """
     def __init__(self, filename=EVENTS_JSON_NAME):
-        if (self.__initialized):
+        if getattr(self, "__initialized", False):
             return
         self.__initialized = True
         super().__init__(filename)
@@ -23,12 +21,15 @@ class EventsDAO(DataDAO):
 
     def get_events(self) -> dict:
         """
-        Gets the list of events that are available
+        Returns all available events.
         """
         return self.data
 
     def get_event(self, event_key: str) -> dict:
         """
-        Gets the specific event data using the event key
+        Returns data for a specific event.
+        If event_key is missing, returns an empty event instead of crashing.
         """
-        return self.data[event_key]
+        return self.data.get(event_key, {
+            "is_event_enabled": False
+        })

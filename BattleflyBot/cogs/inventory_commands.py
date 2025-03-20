@@ -1,5 +1,5 @@
 # from cogs.modules.battlefly_functionality import battleflyFunctionality
-from classes import battleflyBotCog
+from cogs.battleflybot_cog import BattleflyBotCog
 from cogs.logic.inventory_logic import InventoryLogic
 from discord.ext import commands
 from modules.battleflybot_exceptions import (
@@ -9,15 +9,15 @@ from modules.battleflybot_exceptions import (
     NoEggCountException,
     NotEnoughExchangebattleflyQuantityException,
     NotEnoughExchangebattleflySpecifiedException,
-    NotEnoughLootboxQuantityException,
+    NotEnoughCocoonQuantityException,
     PageQuantityTooLow,
     ReleaseQuantityTooLow,
     TooManyExchangebattleflySpecifiedException,
-    UnregisteredTrainerException,
+    UnregisteredAllyException,
 )
 
 
-class InventoryCommands(battleflyBotCog):
+class InventoryCommands(BattleflyBotCog):
 
     def __init__(self, bot):
         super().__init__()
@@ -25,16 +25,15 @@ class InventoryCommands(battleflyBotCog):
 
     @commands.command(name='catch_old', aliases=['c'], pass_context=True)
     async def catch_old(self, ctx: commands.Context):
-
         """
-        Catches a random battlefly and gives it to the trainer
+        Catches a random Battlefly and gives it to the Ally
         """
         try:
             await self.inventory_logic.catch_battlefly(ctx)
         except CatchCooldownIncompleteException as e:
-            await self.post_catch_cooldown_incomplete_msg(ctx, e)
+            await self.catch_cooldown_incomplete_msg(ctx, e)
 
-    @commands.command(name='inventory', aliases=['i'], pass_context=True)
+    @commands.command(name='inv', aliases=['i'], pass_context=True)
     async def pinventory(
         self,
         ctx: commands.Context,
@@ -44,65 +43,66 @@ class InventoryCommands(battleflyBotCog):
         )
     ):
         """
-        Displays the trainer's battlefly inventory
+        Displays the Ally's Battlefly inventory
         """
         try:
             if page < 1:
                 raise PageQuantityTooLow()
-            embed_msg = \
-                await self.inventory_logic.build_pinventory_msg(ctx, page)
+            embed_msg = await self.inventory_logic.build_pinventory_msg(ctx, page)
             await ctx.send(embed=embed_msg)
         except HigherPageSpecifiedException as e:
-            await self.post_higher_page_specified_exception_msg(ctx, e)
+            await self.higher_page_specified_msg(ctx, e)
         except PageQuantityTooLow:
-            await self.post_page_quantity_too_low_msg(ctx)
-        except UnregisteredTrainerException:
-            await self.post_unregistered_trainer_exception_msg(ctx)
+            await self.page_quantity_too_low_msg(ctx)
+        except UnregisteredAllyException:
+            await self.unregistered_ally_msg(ctx)
 
     @commands.command(name='release', aliases=['r'], pass_context=True)
     async def release(
         self,
         ctx: commands.Context,
-        pkmn_name: str = commands.parameter(
-            description="The name of the battlefly"
-        ),
-        quantity=1
+        battlefly_number: int = commands.parameter(
+            description="The number of the Battlefly in your inventory"
+        )
     ):
         """
-        Releases a battlefly from your inventory
+        Allows players to release a Battlefly by its number in the inventory.
         """
-        try:
-            if quantity <= 0:
-                raise ReleaseQuantityTooLow()
-            await self.inventory_logic.release_battlefly(
-                ctx,
-                pkmn_name,
-                quantity,
-            )
-            await ctx.send(f"{ctx.message.author.mention} "
-                           f"successfully released {pkmn_name.title()}")
-        except HigherReleaseQuantitySpecifiedException as e:
-            await self.post_higher_quantity_specified_exception_msg(ctx, e)
-        except ReleaseQuantityTooLow as e:
-            await self.post_release_quantity_too_low_msg(ctx, e)
+        user_id = str(ctx.author.id)
+
+        # Check if the player has an inventory
+        if user_id not in self.inventory_logic.battlefly_inventory or not self.inventory_logic.battlefly_inventory[user_id]:
+            await ctx.send(f"📭 {ctx.author.mention}, your inventory is empty! Nothing to release.")
+            return
+
+        # Validate number input
+        if battlefly_number < 1 or battlefly_number > len(self.inventory_logic.battlefly_inventory[user_id]):
+            await ctx.send(f"⚠️ {ctx.author.mention}, invalid Battlefly number! Use `!inv` to see your numbered list.")
+            return
+
+        # Remove the selected Battlefly
+        removed_battlefly = self.inventory_logic.battlefly_inventory[user_id].pop(battlefly_number - 1)
+        self.inventory_logic.save_inventory()
+
+        await ctx.send(f"😢 {ctx.author.mention} released **{removed_battlefly['name']}** ({removed_battlefly['type']}) back into the wild!")
 
     @commands.command(name='eggs', aliases=['e'], pass_context=True)
     async def eggs(self, ctx: commands.Context) -> None:
         """
-        Gets the number of eggs that the trainer has
+        Gets the number of eggs that the Ally has
         """
         try:
             embed_msg = await self.inventory_logic.build_eggs_msg(ctx)
             await ctx.send(embed=embed_msg)
-        except UnregisteredTrainerException:
-            await self.post_unregistered_trainer_exception_msg()
+        except UnregisteredAllyException:
+            await self.unregistered_ally_msg()
 
     @commands.command(name='hatch', aliases=['h'], pass_context=True)
     async def hatch(
         self,
         ctx: commands.Context,
         special_egg: str = commands.parameter(
-            description="Specify 'm' to hatch a manaphy egg if you have one",
+            description="Specify 'm' to hatch a special egg if you have one",
             default=''
         )
     ):
@@ -112,9 +112,9 @@ class InventoryCommands(battleflyBotCog):
         try:
             await self.inventory_logic.hatch_egg(ctx, special_egg)
         except NoEggCountException as e:
-            await self.post_no_egg_count_msg(ctx, e)
-        except UnregisteredTrainerException:
-            await self.post_unregistered_trainer_exception_msg(ctx)
+            await self.no_egg_count_msg(ctx, e)
+        except UnregisteredAllyException:
+            await self.unregistered_ally_msg(ctx)
 
     @commands.command(name='exchange', pass_context=True)
     async def exchange(
@@ -123,8 +123,7 @@ class InventoryCommands(battleflyBotCog):
         *args: str
     ) -> None:
         """
-        Exchanges 5 battlefly for a battlefly with a modified shiny chance
-        rate
+        Exchanges 5 Battleflies for a Battlefly with a modified chance rate
 
         Example usage:
         !exchange pikachu pikachu charizard squirtle bulbasaur
@@ -132,47 +131,40 @@ class InventoryCommands(battleflyBotCog):
         try:
             await self.inventory_logic.exchange_battlefly(ctx, *args)
         except NotEnoughExchangebattleflyQuantityException:
-            await self.post_not_enough_exchange_battlefly_quantity_exception_msg(
-                ctx
-            )
+            await self.not_enough_exchange_battlefly_quantity_msg(ctx)
         except NotEnoughExchangebattleflySpecifiedException:
-            await self.post_not_enough_exchange_battlefly_specified_exception(
-                ctx
-            )
+            await self.not_enough_exchange_battlefly_specified_msg(ctx)
         except TooManyExchangebattleflySpecifiedException:
-            await self.post_too_many_exchange_battlefly_specified_exception_msg(
-                ctx
-            )
-        except UnregisteredTrainerException:
-            await self.post_unregistered_trainer_exception_msg(ctx)
+            await self.too_many_exchange_battlefly_specified_msg(ctx)
+        except UnregisteredAllyException:
+            await self.unregistered_ally_msg(ctx)
 
     @commands.command(name='open', aliases=['o'], pass_context=True)
     async def open(
         self,
         ctx: commands.Context,
-        lootbox: str = commands.parameter(
-            description="Specify either a 'bronze', 'silver', or 'gold' lootbox to open"
+        cocoon: str = commands.parameter(
+            description="Specify either a 'bronze', 'silver', or 'gold' cocoon to open"
         )
     ):
         """
-        Opens a specified lootbox in the inventory
+        Opens a specified cocoon in the inventory
         """
         try:
-            embed_msg = await self.inventory_logic.open_lootbox(ctx, lootbox)
+            embed_msg = await self.inventory_logic.open_cocoon(ctx, cocoon)
             await ctx.send(embed=embed_msg)
-        except NotEnoughLootboxQuantityException as e:
-            await self.post_not_enough_lootbox_quantity_exception_msg(ctx, e)
-        except UnregisteredTrainerException:
-            await self.post_unregistered_trainer_exception_msg(ctx)
+        except NotEnoughCocoonQuantityException as e:
+            await self.not_enough_cocoon_quantity_msg(ctx, e)
+        except UnregisteredAllyException:
+            await self.unregistered_ally_msg(ctx)
 
-    @commands.command(name='loot', aliases=['l'], pass_context=True)
-    async def loot(self, ctx: commands.Context):
+    @commands.command(name='cocoons', aliases=['l'], pass_context=True)
+    async def cocoons(self, ctx: commands.Context):
         """
-        Displays the number of lootboxes the trainer has
+        Displays the number of cocoons the Ally has
         """
         try:
-            embed_msg = \
-                await self.inventory_logic.display_lootbox_inventory(ctx)
+            embed_msg = await self.inventory_logic.display_cocoon_inventory(ctx)
             await ctx.send(embed=embed_msg)
-        except UnregisteredTrainerException:
-            await self.post_unregistered_trainer_exception_msg(ctx)
+        except UnregisteredAllyException:
+            await self.unregistered_ally_msg(ctx)

@@ -1,210 +1,120 @@
-from classes import battleflyBotModule
-from database import DailyShopDAO, GeneralRatesDAO, LootboxConfigsDAO, ShinybattleflyRatesDAO
+from modules.battleflybot_module import BattleflyBotModule
+from database import DailyShopDAO, GeneralRatesDAO, CocoonConfigsDAO
 from events import EventManager
-from modules.battleflybot_exceptions import battleflyBotRatesException
+from modules.battleflybot_exceptions import BattleflyBotRatesException
 
 
-class battleflyBotRates(battleflyBotModule):
-    """Holds the values of the battleflyBot rates to use and
-    opens options here for event modification to the
-    rates (i.e. Happy Hour shiny rate/cooldown)"""
+class BattleflyBotRates(BattleflyBotModule):
+    """Holds the values of the BattleflyBot rates to use and
+    allows event-based modifications to the rates.
+    """
 
     def __init__(self, bot):
         self.event_manager = EventManager(bot)
         self.daily_shop_rates = DailyShopDAO()
         self.general_rates = GeneralRatesDAO()
-        self.lootbox_rates = LootboxConfigsDAO()
-        self.shiny_pkmn_rates = ShinybattleflyRatesDAO()
+        self.cocoon_rates = CocoonConfigsDAO()
 
     def get_daily_redemption_reset_hour(self) -> int:
         """
-        Gets the hour to reset the daily applied with
-        any event modifications
+        Gets the hour when the Daily Shop resets for Pollen Shard purchases.
         """
         try:
             return self.daily_shop_rates.get_daily_redemption_reset_hour()
         except Exception as e:
             msg = "Error has occurred getting daily redemption hour."
-            self.post_error_log_msg(battleflyBotRatesException.__name__, msg, e)
+            self.post_error_log_msg(BattleflyBotRatesException.__name__, msg, e)
 
     def get_daily_shop_menu(self) -> dict:
         """
-        Gets the daily shop menu
+        Gets the Daily Shop menu for items that can be purchased with Pollen Shards.
         """
         try:
             return self.daily_shop_rates.get_daily_shop_menu()
         except Exception as e:
             msg = "Error has occurred getting daily shop menu."
-            self.post_error_log_msg(battleflyBotRatesException.__name__, msg, e)
+            self.post_error_log_msg(BattleflyBotRatesException.__name__, msg, e)
 
     def get_catch_cooldown_seconds(self) -> int:
         """
-        Gets the catch cooldown applied with any event
-        modifications
+        Gets the catch cooldown applied with any event modifications.
         """
         try:
             return self.general_rates.get_catch_cooldown_seconds() \
                 * self.event_manager.get_current_event_catch_cooldown_modifier()
         except Exception as e:
             msg = "Error has occurred getting catch cooldown seconds."
-            self.post_error_log_msg(battleflyBotRatesException.__name__, msg, e)
+            self.post_error_log_msg(BattleflyBotRatesException.__name__, msg, e)
 
-    def get_shiny_pkmn_catch_rate(self) -> int:
+    def get_cocoon_battlefly_limit(self) -> int:
         """
-        Gets the shiny battlefly catch rate
-        applied with any event modifications
+        Gets the number of Battleflies that a Cocoon opening can provide.
         """
         try:
-            return self.shiny_pkmn_rates.get_shiny_pkmn_catch_rate() \
-                * self.event_manager.get_current_event_shiny_rate_modifier()
+            return self.cocoon_rates.get_cocoon_battlefly_limit()
         except Exception as e:
-            msg = "Error has occurred getting shiny pkmn catch rate."
-            self.post_error_log_msg(battleflyBotRatesException.__name__, msg, e)
+            msg = "Error has occurred getting Cocoon Battlefly limit."
+            self.post_error_log_msg(BattleflyBotRatesException.__name__, msg, e)
 
-    def get_shiny_pkmn_night_vendor_rate(self) -> int:
+    def get_daily_cocoon_amber_rate(self) -> float:
         """
-        Gets the shiny battlefly spawn rate from a night vendor
+        Gets the max probability threshold for an Amber Cocoon 
+        given by the Daily Shop or catching a Battlefly.
         """
         try:
-            nv_event = self.event_manager.get_event_by_key("night_vendor")
-            return self.shiny_pkmn_rates.get_shiny_pkmn_catch_rate() \
-                * nv_event.get_shiny_roll_rate_modifier()
+            return self.cocoon_rates.get_daily_cocoon_amber_rate()
         except Exception as e:
-            msg = "Error has occurred getting shiny pkmn night vendor rate."
-            self.post_error_log_msg(battleflyBotRatesException.__name__, msg, e)
+            msg = "Error has occurred getting daily Amber Cocoon rate."
+            self.post_error_log_msg(BattleflyBotRatesException.__name__, msg, e)
 
-    def get_shiny_pkmn_hatch_multiplier(self) -> int:
+    def get_daily_cocoon_sapphire_rate(self) -> float:
         """
-        Gets the shiny multiplier of hatching battlefly
-        applied with any event modifications
+        Gets the max probability threshold for a Sapphire Cocoon 
+        given by the Daily Shop or catching a Battlefly.
         """
         try:
-            shiny_pkmn_hatch_multiplier = \
-                self.shiny_pkmn_rates.get_shiny_pkmn_hatch_multiplier()
-            shiny_pkmn_catch_rate = \
-                self.shiny_pkmn_rates.get_shiny_pkmn_catch_rate()
-            return shiny_pkmn_hatch_multiplier * shiny_pkmn_catch_rate
+            return self.cocoon_rates.get_daily_cocoon_sapphire_rate()
         except Exception as e:
-            msg = "Error has occurred getting shiny pkmn hatch multiplier."
-            self.post_error_log_msg(battleflyBotRatesException.__name__, msg, e)
+            msg = "Error has occurred getting daily Sapphire Cocoon rate."
+            self.post_error_log_msg(BattleflyBotRatesException.__name__, msg, e)
 
-    def get_shiny_pkmn_exchange_multiplier(self) -> int:
+    def get_daily_cocoon_diamond_rate(self) -> float:
         """
-        Gets the shiny multiplier of exchanging battlefly
-        applied with any event modifications
+        Gets the max probability threshold for a Diamond Cocoon 
+        given by the Daily Shop or catching a Battlefly.
         """
         try:
-            return self.shiny_pkmn_rates.get_shiny_pkmn_exchange_multiplier()
+            return self.cocoon_rates.get_daily_cocoon_diamond_rate()
         except Exception as e:
-            msg = "Error has occurred getting shiny pkmn exchange multiplier."
-            self.post_error_log_msg(battleflyBotRatesException.__name__, msg, e)
+            msg = "Error has occurred getting daily Diamond Cocoon rate."
+            self.post_error_log_msg(BattleflyBotRatesException.__name__, msg, e)
 
-    def get_shiny_pkmn_lootbox_multiplier(self) -> int:
+    def get_cocoon_amber_rate(self) -> float:
         """
-        Gets the shiny multiplier of getting battlefly
-        via lootboxes applied with any event modifications
+        Gets the probability threshold for an Amber Cocoon when catching a Battlefly.
         """
         try:
-            return self.shiny_pkmn_rates.get_shiny_pkmn_lootbox_multiplier()
+            return self.cocoon_rates.get_cocoon_amber_rate()
         except Exception as e:
-            msg = "Error has occurred getting shiny pkmn lootbox multiplier."
-            self.post_error_log_msg(battleflyBotRatesException.__name__, msg, e)
+            msg = "Error has occurred getting Amber Cocoon rate."
+            self.post_error_log_msg(BattleflyBotRatesException.__name__, msg, e)
 
-    def get_lootbox_battlefly_limit(self) -> int:
+    def get_cocoon_sapphire_rate(self) -> float:
         """
-        Gets the number of battlefly that a lootbox
-        opening can provide to the trainer
+        Gets the probability threshold for a Sapphire Cocoon when catching a Battlefly.
         """
         try:
-            return self.lootbox_rates.get_lootbox_battlefly_limit()
+            return self.cocoon_rates.get_cocoon_sapphire_rate()
         except Exception as e:
-            msg = "Error has occurred getting lootbox battlefly limit."
-            self.post_error_log_msg(battleflyBotRatesException.__name__, msg, e)
+            msg = "Error has occurred getting Sapphire Cocoon rate."
+            self.post_error_log_msg(BattleflyBotRatesException.__name__, msg, e)
 
-    def get_daily_lootbox_bronze_rate(self) -> float:
+    def get_cocoon_diamond_rate(self) -> float:
         """
-        Gets the max number threshold for a bronze
-        lootbox given by the daily token redemption
+        Gets the probability threshold for a Diamond Cocoon when catching a Battlefly.
         """
         try:
-            return self.lootbox_rates.get_daily_lootbox_bronze_rate()
+            return self.cocoon_rates.get_cocoon_diamond_rate()
         except Exception as e:
-            msg = "Error has occurred getting daily lootbox bronze rate."
-            self.post_error_log_msg(battleflyBotRatesException.__name__, msg, e)
-
-    def get_daily_lootbox_silver_rate(self) -> float:
-        """
-        Gets the max number threshold for a silver
-        lootbox given by the daily token redemption
-        """
-        try:
-            return self.lootbox_rates.get_daily_lootbox_silver_rate()
-        except Exception as e:
-            msg = "Error has occurred getting daily lootbox silver rate."
-            self.post_error_log_msg(battleflyBotRatesException.__name__, msg, e)
-
-    def get_daily_lootbox_gold_rate(self) -> float:
-        """
-        Gets the max number threshold for a gold
-        lootbox given by the daily token redemption
-        """
-        try:
-            return self.lootbox_rates.get_daily_lootbox_gold_rate()
-        except Exception as e:
-            msg = "Error has occurred getting daily lootbox gold rate."
-            self.post_error_log_msg(battleflyBotRatesException.__name__, msg, e)
-
-    def get_daily_lootbox_legendary_rate(self) -> float:
-        """
-        Gets the max number threshold for a legendary
-        lootbox given by the daily token redemption
-        """
-        try:
-            return self.lootbox_rates.get_daily_lootbox_legendary_rate()
-        except Exception as e:
-            msg = "Error has occurred getting daily lootbox legendary rate."
-            self.post_error_log_msg(battleflyBotRatesException.__name__, msg, e)
-
-    def get_lootbox_bronze_rate(self) -> float:
-        """
-        Gets the max number threshold for a bronze
-        lootbox given given by catching a battlefly
-        """
-        try:
-            return self.lootbox_rates.get_lootbox_bronze_rate()
-        except Exception as e:
-            msg = "Error has occurred getting lootbox bronze rate."
-            self.post_error_log_msg(battleflyBotRatesException.__name__, msg, e)
-
-    def get_lootbox_silver_rate(self) -> float:
-        """
-        Gets the max number threshold for a silver
-        lootbox given given by catching a battlefly
-        """
-        try:
-            return self.lootbox_rates.get_lootbox_silver_rate()
-        except Exception as e:
-            msg = "Error has occurred getting lootbox silver rate."
-            self.post_error_log_msg(battleflyBotRatesException.__name__, msg, e)
-
-    def get_lootbox_gold_rate(self) -> float:
-        """
-        Gets the max number threshold for a gold
-        lootbox given given by catching a battlefly
-        """
-        try:
-            return self.lootbox_rates.get_lootbox_gold_rate()
-        except Exception as e:
-            msg = "Error has occurred getting lootbox gold rate."
-            self.post_error_log_msg(battleflyBotRatesException.__name__, msg, e)
-
-    def get_lootbox_legendary_rate(self) -> float:
-        """
-        Gets the max number threshold for a legendary
-        lootbox given given by catching a battlefly
-        """
-        try:
-            return self.lootbox_rates.get_lootbox_legendary_rate()
-        except Exception as e:
-            msg = "Error has occurred getting lootbox legendary rate."
-            self.post_error_log_msg(battleflyBotRatesException.__name__, msg, e)
+            msg = "Error has occurred getting Diamond Cocoon rate."
+            self.post_error_log_msg(BattleflyBotRatesException.__name__, msg, e)

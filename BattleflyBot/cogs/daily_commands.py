@@ -1,4 +1,4 @@
-from classes import battleflyBotCog
+from cogs.battleflybot_cog import BattleflyBotCog
 from cogs.logic import DailyLogic
 from discord.ext import commands
 from modules.battleflybot_exceptions import (
@@ -8,7 +8,7 @@ from modules.battleflybot_exceptions import (
 )
 
 
-class DailyCommands(battleflyBotCog):
+class DailyCommands(BattleflyBotCog):
 
     def __init__(self, bot):
         super().__init__()
@@ -17,16 +17,16 @@ class DailyCommands(battleflyBotCog):
     @commands.command(name='daily', pass_context=True)
     async def daily(self, ctx: commands.Context) -> None:
         """
-        Claim a daily lootbox as well as a daily token
+        Claim a daily cocoon as well as a daily token
         """
         try:
-            lootbox = self.daily_logic.claim_daily(ctx)
+            cocoon = self.daily_logic.claim_daily(ctx)
             await ctx.send(f"{ctx.message.author.mention},"
-                           f" you've claimed a **{lootbox}** lootbox"
+                           f" you've claimed a **{cocoon}** cocoon"
                            " and a daily token to use in the"
                            " daily token shop")
         except DailyCooldownIncompleteException:
-            await self.post_daily_cooldown_incomplete_msg(ctx)
+            await self.daily_cooldown_incomplete_msg(ctx)
 
     @commands.command(name='tokens', pass_context=True)
     async def tokens(self, ctx: commands.Context) -> None:
@@ -59,12 +59,12 @@ class DailyCommands(battleflyBotCog):
             msg = await self.daily_logic.buy_daily_shop_item(ctx, item_num)
             await ctx.send(msg)
         except ImproperDailyShopItemNumberException as e:
-            await self.post_improper_daily_shop_item_number_exception_msg(
+            await self.improper_daily_shop_item_number_msg(
                 ctx,
                 e
             )
         except NotEnoughDailyShopTokensException as e:
-            await self.post_not_enough_daily_shop_tokens_exception_msg(
+            await self.not_enough_daily_shop_tokens_msg(
                 ctx,
                 e
             )
